@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 
-@argumentResolver("httpServletRequestArgumentResolver")
+@argumentResolver
 public class HttpServletRequestArgumentResolver implements ArgumentResolver {
     public boolean support(Class<?> type, int paramIndex, Method method){
         return ServletRequest.class.isAssignableFrom(type);

@@ -4,7 +4,7 @@ import fsens.control.annotation.myService;
 import fsens.control.service.MyService;
 import fsens.model.User;
 
-@myService("queryService")
+@myService
 public class queryService implements MyService {
     public String query(String info){
         if(info.equalsIgnoreCase( "name")){

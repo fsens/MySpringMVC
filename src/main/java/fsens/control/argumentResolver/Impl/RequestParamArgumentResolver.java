@@ -11,7 +11,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 
-@argumentResolver("requestParamArgumentResolver")
+@argumentResolver
 public class RequestParamArgumentResolver implements ArgumentResolver {
     public boolean support(Class<?> type, int paramIndex, Method method){
         //位置：annotations[i][j],第i个参数，第j个注解实例，整体表示一个注解实例
@@ -21,7 +21,6 @@ public class RequestParamArgumentResolver implements ArgumentResolver {
 
         for (Annotation paramAn : paramAns){
             //当前Class对象如果是参数Class对象的父类，父接口，或者是相同，都会返回true。
-            //这里用isAssignableFrom等价于用instanceof
             if(myRequestParam.class.isAssignableFrom(paramAn.getClass())){
                 return true;
             }
@@ -44,8 +43,8 @@ public class RequestParamArgumentResolver implements ArgumentResolver {
             if(myRequestParam.class.isAssignableFrom(paramAn.getClass())){
                 myRequestParam mrp = (myRequestParam) paramAn;
 
-                String value = mrp.value();
-                String str = request.getParameter(value);
+                String value = mrp.value();//info：用户输入值的参数
+                String str = request.getParameter(value);//用户输入的值
                 /**
                  * 两种情况:
                  * 1.输入为空,这里得分required为true还是false来讨论

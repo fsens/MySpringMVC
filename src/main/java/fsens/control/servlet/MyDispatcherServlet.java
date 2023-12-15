@@ -147,22 +147,50 @@ public class MyDispatcherServlet extends HttpServlet {
                 if(clazz.isAnnotationPresent(myController.class)){
                     myRequestMapping myrequestmapping = (myRequestMapping) clazz.getAnnotation(myRequestMapping.class);
                     String rmValue = myrequestmapping.value();
-                    Object instance = clazz.newInstance();
+                    // 检查@myRequestMapping注解值是否未指定，如果为指定则抛出异常
+                    if (rmValue.equals("")){
+                        throw new RuntimeException("注解了@myRequestMapping的类未指定url");
+                    }
+                    // 检查是否存在相同的url，如果是则抛出异常
+                    if (beans.containsKey(rmValue)){
+                        throw new RuntimeException("注解了@myRequestMapping的类存在相同的url");
+                    }
 
+                    Object instance = clazz.newInstance();
                     beans.put(rmValue, instance);
                 }
                 else if(clazz.isAnnotationPresent(myService.class)){
                     myService myservice = (myService) clazz.getAnnotation(myService.class);
                     String serviceValue = myservice.value();
-                    Object instance = clazz.newInstance();
+                    // 实现@myService默认值为所在类的首字母为小写的类名的功能
+                    if (serviceValue.equals("")){
+                        serviceValue = clazz.getSimpleName();
+                        //首字母小写
+                        serviceValue = Character.toLowerCase(serviceValue.charAt(0)) + serviceValue.substring(1);
+                    }
+                    // 检查是否存在相同的service名，如果是则抛出异常
+                    if (beans.containsKey(serviceValue)){
+                        throw new RuntimeException("有相同的service名称");
+                    }
 
+                    Object instance = clazz.newInstance();
                     beans.put(serviceValue, instance);
                 }
                 else if(clazz.isAnnotationPresent(argumentResolver.class)){
                     argumentResolver argumentResolver = (argumentResolver) clazz.getAnnotation(argumentResolver.class);
                     String argumentResolverValue = argumentResolver.value();
-                    Object instance = clazz.newInstance();
+                    // 实现@argumentResolver默认值为所在类的首字母为小写的类名的功能
+                    if (argumentResolverValue.equals("")){
+                        argumentResolverValue = clazz.getSimpleName();
+                        //首字母小写
+                        argumentResolverValue = Character.toLowerCase(argumentResolverValue.charAt(0)) + argumentResolverValue.substring(1);
+                    }
+                    // 检查是否存在相同的argumentResolver名，如果是则抛出异常
+                    if (beans.containsKey(argumentResolverValue)){
+                        throw new RuntimeException("有相同的argumentResolver名称");
+                    }
 
+                    Object instance = clazz.newInstance();
                     beans.put(argumentResolverValue, instance);
                 }
                 else{
@@ -173,10 +201,10 @@ public class MyDispatcherServlet extends HttpServlet {
             catch (ClassNotFoundException e){
                 e.printStackTrace();
             }
-            catch (InstantiationException e){
+            catch (InstantiationException e){//得带无参构造器，否则系统不能实例化
                 e.printStackTrace();
             }
-            catch (IllegalAccessException e){
+            catch (IllegalAccessException e){//由不同的反射调用方法获取到不同访问权限的成员，错误的访问方式会引发该异常
                 e.printStackTrace();
             }
 
@@ -196,14 +224,19 @@ public class MyDispatcherServlet extends HttpServlet {
             Class clazz = instance.getClass();
 
             if(clazz.isAnnotationPresent(myController.class)){
-                Field[] fields = clazz.getDeclaredFields();
+                Field[] fields = clazz.getDeclaredFields();//获取所有字段，无论什么访问修饰符
 
                 //遍历该类的字段,查找注解了myQualifier的字段,并对其注入实例
                 for(Field field : fields){
                     if(field.isAnnotationPresent(myQualifier.class)){
                         myQualifier myqualifier = (myQualifier) field.getAnnotation(myQualifier.class);
                         String value = myqualifier.value();
-                        field.setAccessible(true);
+                        // 检查@myQualifier是否指定了要注入的bean名称，若否，则抛出异常
+                        if (value.equals("")){
+                            throw new RuntimeException("@myQualifier未指定需要的bean名称");
+                        }
+
+                        field.setAccessible(true);//使可以访问字段，即使是私有字段
                         try {
                             field.set(instance, beans.get(value));
                         }
@@ -259,8 +292,10 @@ public class MyDispatcherServlet extends HttpServlet {
 
     private MethodHandler getHandler(HttpServletRequest request) {
         //得到uri
+        //    /MySpringmvc/fsens/query
         String uri = request.getRequestURI();
         //得到上下文
+        //    /MySpringmvc
         String context = request.getContextPath();
         //得到匹配对应handler的路径
         String path = uri.replace(context, "");
