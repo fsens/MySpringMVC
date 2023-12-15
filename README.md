@@ -54,8 +54,7 @@ public void init(ServletConfig config) throws ServletException{
 
 ## 1.主要流程
 
-![image-20231215123624758](https://github.com/fsens/MySpringMVC/assets/95872817/d7ae8c7e-420d-4169-8fa4-52dbee00f61f)
-
+![image-20231215123624758](https://github.com/fsens/MySpringMVC/assets/95872817/4760c27c-e1e0-43e5-97c2-bf625a6c6f5e)
 
 ## 2.主要数据结构
 
@@ -189,3 +188,124 @@ public void hand(HttpServletRequest request,
     }
 }
 ```
+
+# 三、实现效果
+
+## 项目结构
+
+![image-20231215125147788](https://github.com/fsens/MySpringMVC/assets/95872817/704d1860-18fd-4d83-99ad-b488008f375a)
+
+
+## 编写用于测试的后端代码
+
+Controller：
+
+```java
+@myController
+@myRequestMapping("/fsens")
+public class TestController {
+
+    //指定注入queryService实例
+    @myQualifier("queryService")
+    private MyService queryService;
+
+    @myRequestMapping("/query")
+    public void queryInfo(HttpServletRequest request, HttpServletResponse response,
+                      @myRequestParam(value = "info")String info){
+        try {
+            PrintWriter pw = response.getWriter();
+            String result = queryService.query(info);
+            pw.write(result);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+}
+```
+
+Service：
+
+```Java
+@myService
+public class queryService implements MyService {
+    public String query(String info){
+        if(info.equalsIgnoreCase( "name")){
+            return new User().getName();
+        }
+        else if(info.equalsIgnoreCase("sex")){
+            return new User().getSex();
+        }
+        else if(info.equalsIgnoreCase("age")){
+            return new User().getAge();
+        }
+        return null;
+    }
+
+}
+```
+
+用于测试数据User：
+
+```Java
+public class User {
+    private String name = "fsens";
+
+    private String sex = "man";
+
+    private String age = "20";
+
+    public User(){
+
+    }
+
+    public User(String name, String sex, String age){
+        this.name = name;
+        this.sex = sex;
+        this.age = age;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public String getSex(){
+        return this.sex;
+    }
+
+    public String getAge(){
+        return this.age;
+    }
+
+
+}
+```
+
+## 效果
+
+起始页面：
+
+![image-20231215125520821](https://github.com/fsens/MySpringMVC/assets/95872817/1f8d862c-c547-48fc-9e72-3404f64ed645)
+
+
+默认url必须输入参数：
+
+```java
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface myRequestParam {
+    String value() default "";
+    boolean required() default true;
+}
+```
+
+若未输入参数：
+
+![image-20231215124721731](https://github.com/fsens/MySpringMVC/assets/95872817/cde99e8f-7288-40e3-a72a-342b23a3de23)
+
+
+输入参数：
+
+![image-20231215124751033](https://github.com/fsens/MySpringMVC/assets/95872817/003d4212-f4de-4e12-ae6e-9457b3b7f9be)
